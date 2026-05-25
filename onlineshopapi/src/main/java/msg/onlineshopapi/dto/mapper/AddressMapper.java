@@ -7,6 +7,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class AddressMapper {
 
+    public Address toEntity(AddressDto dto) {
+        return Address.builder()
+                .country(dto.getCountry())
+                .city(dto.getCity())
+                .county(dto.getCounty())
+                .streetAddress(dto.getStreetAddress())
+                .build();
+    }
+
     public AddressDto toDto(Address address) {
         return AddressDto.builder()
                 .country(address.getCountry())

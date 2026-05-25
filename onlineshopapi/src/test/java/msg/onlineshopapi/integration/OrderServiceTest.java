@@ -139,6 +139,7 @@ class OrderServiceTest {
                 .quantity(3)
                 .build();
         Order order = Order.builder()
+                .address(testAddress())
                 .orderDetails(new HashSet<>(Set.of(detail)))
                 .build();
 
@@ -146,6 +147,8 @@ class OrderServiceTest {
 
         assertThat(result.getId()).isNotNull();
         assertThat(result.getUser().getEmail()).isEqualTo(user.getEmail());
+        assertThat(result.getAddress()).isNotNull();
+        assertThat(result.getAddress().getStreetAddress()).isEqualTo("123 Pine Street");
         assertThat(result.getOrderDetails()).hasSize(1);
 
         Stock updatedStock = stockRepository.findById(stockId).orElseThrow();
@@ -166,6 +169,7 @@ class OrderServiceTest {
                 .quantity(5)
                 .build();
         Order order = Order.builder()
+                .address(testAddress())
                 .orderDetails(new HashSet<>(Set.of(detail)))
                 .build();
 
@@ -210,6 +214,7 @@ class OrderServiceTest {
                 .quantity(3)
                 .build();
         Order order = Order.builder()
+                .address(testAddress())
                 .orderDetails(new HashSet<>(Set.of(laptopDetail, mouseDetail)))
                 .build();
 
@@ -261,6 +266,7 @@ class OrderServiceTest {
                 .quantity(5)
                 .build();
         Order order = Order.builder()
+                .address(testAddress())
                 .orderDetails(new HashSet<>(Set.of(laptopDetail, keyboardDetail)))
                 .build();
 
@@ -271,5 +277,14 @@ class OrderServiceTest {
         Stock unchangedKeyboardStock = stockRepository.findById(keyboardStockId).orElseThrow();
         assertThat(unchangedLaptopStock.getQuantity()).isEqualTo(10);
         assertThat(unchangedKeyboardStock.getQuantity()).isEqualTo(1);
+    }
+
+    private msg.onlineshopapi.model.Address testAddress() {
+        return msg.onlineshopapi.model.Address.builder()
+                .country("USA")
+                .city("Seattle")
+                .county("King")
+                .streetAddress("123 Pine Street")
+                .build();
     }
 }

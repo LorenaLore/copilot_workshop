@@ -2,6 +2,7 @@ package msg.onlineshopapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import msg.onlineshopapi.config.TestSecurityConfig;
+import msg.onlineshopapi.dto.AddressDto;
 import msg.onlineshopapi.dto.OrderItemRequestDto;
 import msg.onlineshopapi.dto.OrderRequestDto;
 import msg.onlineshopapi.dto.OrderResponseDto;
@@ -27,6 +28,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -101,6 +103,7 @@ class OrderControllerTest {
         OrderRequestDto request = OrderRequestDto.builder()
                 .items(List.of(OrderItemRequestDto.builder()
                         .productId(productId).quantity(2).build()))
+                .address(testAddress())
                 .build();
         Order entity = Order.builder().build();
         Order saved = Order.builder().id(orderId).build();
@@ -124,6 +127,7 @@ class OrderControllerTest {
         OrderRequestDto request = OrderRequestDto.builder()
                 .items(List.of(OrderItemRequestDto.builder()
                         .productId(productId).quantity(999).build()))
+                .address(testAddress())
                 .build();
         Order entity = Order.builder().build();
 
@@ -139,12 +143,38 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.error").value("Insufficient stock"));
     }
 
+    @Test
+    @WithMockUser(username = "customer@test.com", roles = "CUSTOMER")
+    void create_returns400_whenAddressMissing() throws Exception {
+        OrderRequestDto request = OrderRequestDto.builder()
+                .items(List.of(OrderItemRequestDto.builder()
+                        .productId(productId).quantity(1).build()))
+                .build();
+
+        mockMvc.perform(post("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .principal(() -> "customer@test.com"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(orderService);
+    }
+
     private OrderResponseDto orderResponse(UUID id) {
         return OrderResponseDto.builder()
                 .id(id)
                 .userId(userId)
                 .createdAt(LocalDateTime.of(2026, 3, 23, 12, 0))
                 .details(List.of())
+                .build();
+    }
+
+    private AddressDto testAddress() {
+        return AddressDto.builder()
+                .country("USA")
+                .city("Seattle")
+                .county("King")
+                .streetAddress("123 Pine Street")
                 .build();
     }
 }

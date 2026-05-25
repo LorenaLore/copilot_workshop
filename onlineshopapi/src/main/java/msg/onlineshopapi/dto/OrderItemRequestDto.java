@@ -1,5 +1,7 @@
 package msg.onlineshopapi.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.UUID;
@@ -11,6 +13,9 @@ import java.util.UUID;
 @Builder
 public class OrderItemRequestDto {
 
+    @NotNull
     private UUID productId;
+    @NotNull
+    @Min(1)
     private Integer quantity;
 }

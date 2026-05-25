@@ -177,7 +177,7 @@ describe('CartOverviewPageComponent', () => {
             expect(ordersServiceMock.create).not.toHaveBeenCalled();
         });
 
-        it('should create order and navigate to orders on success', () => {
+        it('should not proceed when delivery address is incomplete', () => {
             // Prepare
             fixture.detectChanges();
 
@@ -185,7 +185,34 @@ describe('CartOverviewPageComponent', () => {
             component.onCheckout();
 
             // Verify
-            expect(ordersServiceMock.create).toHaveBeenCalled();
+            expect(ordersServiceMock.create).not.toHaveBeenCalled();
+            expect(component.addressForm.touched).toBe(true);
+        });
+
+        it('should create order and navigate to orders on success', () => {
+            // Prepare
+            fixture.detectChanges();
+            component.addressForm.setValue({
+                country: 'USA',
+                city: 'Seattle',
+                county: 'King',
+                streetAddress: '123 Pine Street'
+            });
+
+            // Action
+            component.onCheckout();
+
+            // Verify
+            expect(ordersServiceMock.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    address: {
+                        country: 'USA',
+                        city: 'Seattle',
+                        county: 'King',
+                        streetAddress: '123 Pine Street'
+                    }
+                })
+            );
             expect(cartServiceMock.clear).toHaveBeenCalled();
             expect(notificationsServiceMock.notifySuccess).toHaveBeenCalledWith({
                 title: 'Order placed',
@@ -198,6 +225,12 @@ describe('CartOverviewPageComponent', () => {
             // Prepare
             ordersServiceMock.create.mockReturnValue(throwError(() => new Error('Failed')));
             fixture.detectChanges();
+            component.addressForm.setValue({
+                country: 'USA',
+                city: 'Seattle',
+                county: 'King',
+                streetAddress: '123 Pine Street'
+            });
 
             // Action
             component.onCheckout();
@@ -205,7 +238,8 @@ describe('CartOverviewPageComponent', () => {
             // Verify
             expect(notificationsServiceMock.notifyError).toHaveBeenCalledWith({
                 title: 'Order failed',
-                message: 'Please try again in a moment.'
+                message: 'Could not place your order. Please try again later.',
+                durationMs: 6000
             });
             expect(routerMock.navigate).not.toHaveBeenCalled();
         });
