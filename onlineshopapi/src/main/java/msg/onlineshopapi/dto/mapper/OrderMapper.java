@@ -43,7 +43,6 @@ public class OrderMapper {
                 .collect(Collectors.toSet());
 
         return Order.builder()
-                .address(addressMapper.toEntity(dto.getAddress()))
                 .orderDetails(details)
                 .build();
     }
