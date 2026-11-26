@@ -19,4 +19,5 @@ public class ProductResponseDto {
     private Double weight;
     private ProductCategoryDto category;
     private String imageUrl;
+    private SupplierDto supplier;
 }

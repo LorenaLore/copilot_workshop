@@ -7,6 +7,7 @@ export type ProductFormControls = {
     weight: FormControl<number>;
     categoryId: FormControl<string>;
     imageUrl: FormControl<string>;
+    supplierId: FormControl<string>;
 };
 
 export type ProductFormGroup = FormGroup<ProductFormControls>;

@@ -1,5 +1,6 @@
 import { HttpResponse } from '@angular/common/http';
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from '../../data/products.mock';
+import { MOCK_SUPPLIERS } from '../../data/suppliers.mock';
 import {
     CreateProductRequest,
     ProductDto,
@@ -22,6 +23,10 @@ export function handleProductsFeature(
 
     if (method === 'GET' && path === '/products/categories') {
         return handleGetCategories();
+    }
+
+    if (method === 'GET' && path === '/products/suppliers') {
+        return handleGetSuppliers();
     }
 
     if (method === 'GET' && path.match(/^\/products\/[\w-]+$/)) {
@@ -57,6 +62,13 @@ function handleGetCategories(): HttpResponse<unknown> {
     });
 }
 
+function handleGetSuppliers(): HttpResponse<unknown> {
+    return new HttpResponse({
+        status: 200,
+        body: MOCK_SUPPLIERS
+    });
+}
+
 function handleGetProducts(): HttpResponse<unknown> {
     return new HttpResponse({
         status: 200,
@@ -83,6 +95,7 @@ function handleGetProductById(id: string): HttpResponse<unknown> {
 
 function handleCreateProduct(body: CreateProductRequest): HttpResponse<unknown> {
     const category = MOCK_CATEGORIES.find(c => c.id === body.categoryId);
+    const supplier = MOCK_SUPPLIERS.find(s => s.id === body.supplierId) ?? null;
 
     if (!category) {
         return new HttpResponse({
@@ -99,7 +112,8 @@ function handleCreateProduct(body: CreateProductRequest): HttpResponse<unknown> 
         price: body.price,
         weight: body.weight,
         imageUrl: body.imageUrl,
-        category
+        category,
+        supplier
     };
 
     mockProducts.push(newProduct);

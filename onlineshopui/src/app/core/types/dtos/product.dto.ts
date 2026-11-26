@@ -1,3 +1,5 @@
+import { SupplierDto } from './supplier.dto';
+
 export type ProductCategoryDto = {
     id: string;
     name: string;
@@ -12,8 +14,12 @@ export type ProductDto = {
     weight: number;
     category: ProductCategoryDto;
     imageUrl: string;
+    supplier: SupplierDto | null;
 };
 
-export type CreateProductRequest = Omit<ProductDto, 'id' | 'category'> & { categoryId: string };
+export type CreateProductRequest = Omit<ProductDto, 'id' | 'category' | 'supplier'> & {
+    categoryId: string;
+    supplierId: string;
+};
 
-export type UpdateProductRequest = Partial<ProductDto> & { categoryId?: string };
+export type UpdateProductRequest = Partial<ProductDto> & { categoryId?: string; supplierId?: string };
