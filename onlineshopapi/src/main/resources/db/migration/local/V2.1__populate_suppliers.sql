@@ -1,0 +1,20 @@
+INSERT INTO suppliers (id, name, contact)
+VALUES ('5a000001-0000-0000-0000-000000000001', 'TechSource Ltd', 'contact@techsource.com'),
+       ('5a000002-0000-0000-0000-000000000002', 'FashionHub Co', 'info@fashionhub.com'),
+       ('5a000003-0000-0000-0000-000000000003', 'HomeGoods Inc', 'support@homegoods.com'),
+       ('5a000004-0000-0000-0000-000000000004', 'SportsPro Supply', 'orders@sportspro.com');
+
+UPDATE products
+SET supplier_id = CASE category_id
+    WHEN 'ca7e0001-0000-0000-0000-000000000001'::uuid THEN '5a000001-0000-0000-0000-000000000001'::uuid
+    WHEN 'ca7e0002-0000-0000-0000-000000000002'::uuid THEN '5a000002-0000-0000-0000-000000000002'::uuid
+    WHEN 'ca7e0003-0000-0000-0000-000000000003'::uuid THEN '5a000003-0000-0000-0000-000000000003'::uuid
+    WHEN 'ca7e0004-0000-0000-0000-000000000004'::uuid THEN '5a000004-0000-0000-0000-000000000004'::uuid
+END
+WHERE supplier_id IS NULL
+  AND category_id IN (
+      'ca7e0001-0000-0000-0000-000000000001'::uuid,
+      'ca7e0002-0000-0000-0000-000000000002'::uuid,
+      'ca7e0003-0000-0000-0000-000000000003'::uuid,
+      'ca7e0004-0000-0000-0000-000000000004'::uuid
+  );

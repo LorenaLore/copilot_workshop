@@ -1,0 +1,36 @@
+<div class="min-h-screen bg-surface py-8">
+    <div class="container mx-auto max-w-6xl px-4">
+        <h1 class="mb-6 text-3xl font-bold text-text">Wishlist</h1>
+        @if (wishlist.loading()) {
+            <app-spinner />
+        } @else if (wishlist.error()) {
+            <div class="rounded-lg border border-destructive p-6 text-destructive" role="alert">
+                <p>{{ wishlist.error() }}</p>
+                <button type="button" class="mt-4 rounded-md bg-primary px-4 py-2 text-primary-foreground" (click)="wishlist.load(true)">Try Again</button>
+            </div>
+        } @else {
+            @if (wishlist.mutationError()) {
+                <p class="mb-4 text-destructive" role="alert">{{ wishlist.mutationError() }}</p>
+            }
+            @if (wishlist.products().length === 0) {
+                <p class="text-text-muted">Your wishlist is empty.</p>
+            } @else {
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    @for (product of wishlist.products(); track product.id) {
+                        <app-card>
+                            <img [src]="product.imageUrl || '/placeholder-product.svg'" [alt]="product.name" (error)="handleImageError($event)" class="aspect-[4/3] w-full rounded-lg object-cover" />
+                            <h2 class="mt-4 text-xl font-semibold text-text">{{ product.name }}</h2>
+                            <p class="mt-2 text-text">${{ product.price.toFixed(2) }}</p>
+                            <div class="mt-4 flex gap-3">
+                                <a [routerLink]="['/', productsRoot, product.id]" class="rounded-md bg-primary px-4 py-2 text-primary-foreground">View details</a>
+                                <button type="button" [disabled]="wishlist.isPending(product.id)" (click)="wishlist.remove(product.id)" class="rounded-md border border-border px-4 py-2 text-text disabled:opacity-50">
+                                    {{ wishlist.isPending(product.id) ? 'Removing…' : 'Remove' }}
+                                </button>
+                            </div>
+                        </app-card>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
