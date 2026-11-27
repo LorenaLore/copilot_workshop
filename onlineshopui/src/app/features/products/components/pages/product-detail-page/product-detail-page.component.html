@@ -124,6 +124,29 @@
                         >
                             Add to Cart
                         </button>
+                        <button
+                            type="button"
+                            (click)="onSaveToWishlist()"
+                            [disabled]="wishlist.isPending(product()!.id) || wishlist.isSaved(product()!.id)"
+                            class="mt-3 w-full rounded-md border border-border px-6 py-3 text-text hover:bg-surface-2 disabled:opacity-50"
+                        >
+                            @if (wishlist.isPending(product()!.id)) {
+                                Saving…
+                            } @else if (wishlist.isSaved(product()!.id)) {
+                                Saved to wishlist
+                            } @else {
+                                Save to wishlist
+                            }
+                        </button>
+                        @if (wishlist.error()) {
+                            <p class="mt-2 text-destructive" role="alert">
+                                {{ wishlist.error() }}
+                                <button type="button" class="underline" (click)="wishlist.load(true)">Retry</button>
+                            </p>
+                        }
+                        @if (wishlist.mutationError()) {
+                            <p class="mt-2 text-destructive" role="alert">{{ wishlist.mutationError() }}</p>
+                        }
                     </div>
                 </div>
             </app-card>

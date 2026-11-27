@@ -44,6 +44,35 @@
 
         <!-- Products Grid -->
         @if (!loading() && !error() && products().length > 0) {
+            @if (recentlyViewedProducts().length > 0) {
+                <section class="mb-8" aria-label="Recently viewed products">
+                    <h2 class="text-xl font-semibold text-text mb-4">Recently viewed</h2>
+                    <div class="flex gap-4 overflow-x-auto pb-3">
+                        @for (product of recentlyViewedProducts(); track product.id) {
+                            <button
+                                type="button"
+                                (click)="onViewDetails(product.id)"
+                                [attr.aria-label]="'View ' + product.name"
+                                class="flex shrink-0 items-center gap-3 w-64 p-3 text-left bg-surface border border-border rounded-xl hover:bg-surface-2 transition-colors"
+                            >
+                                <img
+                                    [src]="product.imageUrl || '/placeholder-product.svg'"
+                                    [alt]="product.name"
+                                    class="w-16 h-16 object-cover rounded-lg bg-surface-2"
+                                />
+                                <span class="min-w-0">
+                                    <span class="block font-medium text-text truncate">
+                                        {{ product.name }}
+                                    </span>
+                                    <span class="block text-sm text-text-muted">
+                                        ${{ product.price.toFixed(2) }}
+                                    </span>
+                                </span>
+                            </button>
+                        }
+                    </div>
+                </section>
+            }
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 @for (product of products(); track product.id) {
                     <app-product-card

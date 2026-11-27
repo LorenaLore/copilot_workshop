@@ -32,6 +32,7 @@ export class NavbarComponent implements OnInit {
     readonly productsRootLink = ['/', AppNavRoutes.Products.root];
     readonly ordersLink = ['/', AppNavRoutes.Orders.root, AppNavRoutes.Orders.features.overview];
     readonly cartLink = ['/', AppNavRoutes.Cart.root, AppNavRoutes.Cart.features.overview];
+    readonly wishlistLink = ['/', AppNavRoutes.Wishlist.root, AppNavRoutes.Wishlist.features.overview];
     readonly loginLink = ['/', AppNavRoutes.Auth.root, AppNavRoutes.Auth.features.login];
     readonly registerLink = ['/', AppNavRoutes.Auth.root, AppNavRoutes.Auth.features.register];
 

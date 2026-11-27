@@ -1,0 +1,24 @@
+{
+  "name": "fullstack-onlineshop",
+  "version": "1.0.0",
+  "description": "A small-scale full-stack e-commerce application with an Angular frontend and Spring Boot backend.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LorenaLore/copilot_workshop.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/LorenaLore/copilot_workshop/issues"
+  },
+  "homepage": "https://github.com/LorenaLore/copilot_workshop#readme"
+}

@@ -95,7 +95,7 @@ function handleGetProfile(authHeader: string | null): HttpResponse<unknown> {
     }
 
     const token = authHeader.replace('Bearer ', '').trim();
-    const user = mockAuthSessions.get(token) ?? resolveUserFromToken(token);
+    const user = resolveMockUser(authHeader);
 
     if (!user) {
         return new HttpResponse({
@@ -111,6 +111,14 @@ function handleGetProfile(authHeader: string | null): HttpResponse<unknown> {
         status: 200,
         body: user
     });
+}
+
+export function resolveMockUser(authHeader: string | null) {
+    if (!authHeader?.startsWith('Bearer ')) {
+        return null;
+    }
+    const token = authHeader.slice('Bearer '.length).trim();
+    return mockAuthSessions.get(token) ?? resolveUserFromToken(token);
 }
 
 function resolveUserFromToken(token: string) {

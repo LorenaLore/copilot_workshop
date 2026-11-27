@@ -24,6 +24,11 @@ export const routes: Routes = [
                     import('./features/cart/cart.routes').then(mod => mod.CartRoutes)
             },
             {
+                path: AppNavRoutes.Wishlist.root,
+                loadChildren: () =>
+                    import('./features/wishlist/wishlist.routes').then(mod => mod.WishlistRoutes)
+            },
+            {
                 path: AppNavRoutes.Orders.root,
                 loadChildren: () =>
                     import('./features/orders/orders.routes').then(mod => mod.OrdersRoutes)

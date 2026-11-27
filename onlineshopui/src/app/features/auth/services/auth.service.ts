@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, Signal, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { map, Observable, of, switchMap, tap } from 'rxjs';
+import { filter, map, Observable, of, switchMap, tap } from 'rxjs';
 import { EnvironmentConfig } from '../../../core/types/providers/environment-config';
 import {
     JwtPayloadDto,
@@ -23,8 +23,10 @@ export class AuthService {
     private readonly token = signal<string | null>(this.readTokenFromStorage());
     private readonly user = signal<UserDto | null>(null);
     private readonly profileLoaded = signal(false);
+    private readonly sessionRevision = signal(0);
 
     readonly isAuthenticated = computed(() => this.token() !== null);
+    readonly session = this.sessionRevision.asReadonly();
     readonly roles = computed<string[]>(() => {
         const user = this.user();
         if (!user) {
@@ -65,6 +67,7 @@ export class AuthService {
     }
 
     logout() {
+        this.sessionRevision.update(value => value + 1);
         this.clearToken();
         this.user.set(null);
         this.profileLoaded.set(false);
@@ -113,6 +116,9 @@ export class AuthService {
     }
 
     private persistToken(accessToken: string) {
+        this.sessionRevision.update(value => value + 1);
+        this.user.set(null);
+        this.profileLoaded.set(false);
         this.token.set(accessToken);
 
         if (typeof window === 'undefined') {
@@ -133,8 +139,13 @@ export class AuthService {
     }
 
     private fetchCurrentUser() {
+        const session = this.sessionRevision();
         return this.httpClient.get<UserDto>(`${this.environmentConfig.apiUrl}/auth/profile`).pipe(
+            filter(() => this.sessionRevision() === session),
             tap(user => {
+                if (this.user() && this.user()?.id !== user.id) {
+                    this.sessionRevision.update(value => value + 1);
+                }
                 this.user.set(user);
                 this.profileLoaded.set(true);
             }),

@@ -2,6 +2,7 @@ import {
     ChangeDetectionStrategy,
     Component,
     DestroyRef,
+    computed,
     inject,
     OnInit,
     signal
@@ -12,6 +13,8 @@ import { ProductCardComponent } from '../../views/product-card/product-card.comp
 import { SpinnerComponent } from '../../../../../clib/components/spinner/spinner.component';
 import { ModalComponent } from '../../../../../clib/components/modal/modal.component';
 import { ProductService } from '../../../services/product.service';
+import { RecentlyViewedProductsService } from '../../../services/recently-viewed-products.service';
+import { ProductDto } from '../../../../../core/types/dtos/product.dto';
 import { CartService } from '../../../../cart/services/cart.service';
 import { AppNavRoutes } from '../../../../../core/config/constants/navigation.constants';
 import { NotificationsService } from '../../../../../core/services/notifications.service';
@@ -28,6 +31,7 @@ import { take } from 'rxjs';
 })
 export class ProductCatalogPageComponent implements OnInit {
     private readonly productService = inject(ProductService);
+    private readonly recentlyViewedProductsService = inject(RecentlyViewedProductsService);
     private readonly cartService = inject(CartService);
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
@@ -36,6 +40,20 @@ export class ProductCatalogPageComponent implements OnInit {
     readonly products = this.productService.products;
     readonly loading = this.productService.loading;
     readonly error = this.productService.error;
+    readonly recentlyViewedProducts = computed(() => {
+        const productsById = new Map(this.products().map(product => [product.id, product]));
+        const seen = new Set<string>();
+
+        return this.recentlyViewedProductsService
+            .productIds()
+            .filter(id => {
+                if (seen.has(id)) return false;
+                seen.add(id);
+                return true;
+            })
+            .map(id => productsById.get(id))
+            .filter((product): product is ProductDto => product !== undefined);
+    });
 
     readonly showDeleteModal = signal(false);
     readonly productToDelete = signal<string | null>(null);

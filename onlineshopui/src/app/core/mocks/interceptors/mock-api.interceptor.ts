@@ -1,9 +1,10 @@
-import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
-import { delay, of } from 'rxjs';
+import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import { delay, mergeMap, of, throwError, timer } from 'rxjs';
 import { handleAuthFeature } from './handlers/auth-handler.mock';
 import { handleOrdersFeature } from './handlers/orders-handler.mock';
 import { handleProductsFeature } from './handlers/products-handler.mock';
 import { handleSuppliersFeature } from './handlers/suppliers-handler.mock';
+import { handleWishlistFeature } from './handlers/wishlist-handler.mock';
 
 const MOCK_API_URL = 'http://mock-api';
 
@@ -30,6 +31,24 @@ export const mockApiInterceptor: HttpInterceptorFn = (request, next) => {
     if (authResponse) {
         logMockResponse(authContext, authResponse);
         return toDelayedResponse(authResponse);
+    }
+
+    const wishlistResponse = handleWishlistFeature(authContext);
+    if (wishlistResponse) {
+        logMockResponse(authContext, wishlistResponse);
+        if (wishlistResponse.status >= 400) {
+            return timer(MOCK_DELAY_MS).pipe(
+                mergeMap(() =>
+                    throwError(() => new HttpErrorResponse({
+                        error: wishlistResponse.body,
+                        status: wishlistResponse.status,
+                        statusText: wishlistResponse.statusText,
+                        url: request.url
+                    }))
+                )
+            );
+        }
+        return toDelayedResponse(wishlistResponse);
     }
 
     const productsContext = {

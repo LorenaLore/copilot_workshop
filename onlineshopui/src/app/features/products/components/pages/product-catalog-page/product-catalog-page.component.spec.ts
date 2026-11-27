@@ -11,6 +11,7 @@ import { MOCK_PRODUCTS } from '../../../../../core/mocks/data/products.mock';
 import { AppNavRoutes } from '../../../../../core/config/constants/navigation.constants';
 import { EnvironmentConfig } from '../../../../../core/types/providers/environment-config';
 import { MOCK_ENVIRONMENT_CONFIG } from '../../../../../core/mocks/data/environment.mock';
+import { RecentlyViewedProductsService } from '../../../services/recently-viewed-products.service';
 
 describe('ProductCatalogPageComponent', () => {
     let component: ProductCatalogPageComponent;
@@ -31,11 +32,14 @@ describe('ProductCatalogPageComponent', () => {
     let notificationsServiceMock: {
         notifySuccess: ReturnType<typeof vi.fn>;
     };
+    let recentlyViewedProductsServiceMock: {
+        productIds: ReturnType<typeof signal>;
+    };
     let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
         // Mock console.error to suppress expected error logs during error handling tests
-        consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn());
         productServiceMock = {
             products: signal([...MOCK_PRODUCTS]),
             loading: signal(false),
@@ -56,6 +60,10 @@ describe('ProductCatalogPageComponent', () => {
             notifySuccess: vi.fn()
         };
 
+        recentlyViewedProductsServiceMock = {
+            productIds: signal<string[]>([])
+        };
+
         TestBed.configureTestingModule({
             imports: [ProductCatalogPageComponent],
             providers: [
@@ -63,6 +71,10 @@ describe('ProductCatalogPageComponent', () => {
                 { provide: CartService, useValue: cartServiceMock },
                 { provide: Router, useValue: routerMock },
                 { provide: NotificationsService, useValue: notificationsServiceMock },
+                {
+                    provide: RecentlyViewedProductsService,
+                    useValue: recentlyViewedProductsServiceMock
+                },
                 { provide: EnvironmentConfig, useValue: MOCK_ENVIRONMENT_CONFIG }
             ]
         });
@@ -112,6 +124,58 @@ describe('ProductCatalogPageComponent', () => {
                 `/${AppNavRoutes.Products.root}`,
                 productId
             ]);
+        });
+
+        describe('recently viewed products', () => {
+            it('should show unique matching products in most-recent-first order', () => {
+                // Prepare
+                const [first, second] = MOCK_PRODUCTS;
+                recentlyViewedProductsServiceMock.productIds.set([
+                    second.id,
+                    first.id,
+                    second.id,
+                    'missing-product'
+                ]);
+
+                // Action
+                const products = component.recentlyViewedProducts();
+
+                // Verify
+                expect(products).toEqual([second, first]);
+            });
+
+            it('should hide the strip when there are no matching products', () => {
+                // Prepare
+                recentlyViewedProductsServiceMock.productIds.set(['missing-product']);
+                fixture.detectChanges();
+
+                // Action
+                const strip = fixture.nativeElement.querySelector(
+                    '[aria-label="Recently viewed products"]'
+                );
+
+                // Verify
+                expect(strip).toBeNull();
+            });
+
+            it('should navigate to a product detail page when a recent item is clicked', () => {
+                // Prepare
+                const product = MOCK_PRODUCTS[0];
+                recentlyViewedProductsServiceMock.productIds.set([product.id]);
+                fixture.detectChanges();
+                const item = fixture.nativeElement.querySelector(
+                    '[aria-label="Recently viewed products"] button'
+                ) as HTMLButtonElement;
+
+                // Action
+                item.click();
+
+                // Verify
+                expect(routerMock.navigate).toHaveBeenCalledWith([
+                    `/${AppNavRoutes.Products.root}`,
+                    product.id
+                ]);
+            });
         });
     });
 

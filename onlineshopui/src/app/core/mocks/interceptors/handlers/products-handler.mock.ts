@@ -10,6 +10,10 @@ import {
 let mockProducts = [...MOCK_PRODUCTS];
 let mockProductIdCounter = mockProducts.length + 1;
 
+export function getMockProducts(): readonly ProductDto[] {
+    return mockProducts;
+}
+
 type ProductsHandlerContext = {
     method: string;
     path: string;
@@ -145,6 +149,19 @@ function handleUpdateProduct(id: string, body: UpdateProductRequest): HttpRespon
         }
     }
 
+    let supplier = existingProduct.supplier;
+    if (body.supplierId) {
+        const foundSupplier = MOCK_SUPPLIERS.find(s => s.id === body.supplierId);
+        if (!foundSupplier) {
+            return new HttpResponse({
+                status: 400,
+                statusText: 'Bad Request',
+                body: { message: 'Invalid supplier' }
+            });
+        }
+        supplier = foundSupplier;
+    }
+
     const updatedProduct: ProductDto = {
         ...existingProduct,
         name: body.name ?? existingProduct.name,
@@ -152,7 +169,8 @@ function handleUpdateProduct(id: string, body: UpdateProductRequest): HttpRespon
         price: body.price ?? existingProduct.price,
         weight: body.weight ?? existingProduct.weight,
         imageUrl: body.imageUrl ?? existingProduct.imageUrl,
-        category
+        category,
+        supplier
     };
 
     mockProducts[index] = updatedProduct;

@@ -11,10 +11,12 @@ import { CardComponent } from '../../../../../clib/components/card/card.componen
 import { SpinnerComponent } from '../../../../../clib/components/spinner/spinner.component';
 import { IconComponent } from '../../../../../clib/components/icon/icon.component';
 import { ProductService } from '../../../services/product.service';
+import { RecentlyViewedProductsService } from '../../../services/recently-viewed-products.service';
 import { CartService } from '../../../../cart/services/cart.service';
 import { AppNavRoutes } from '../../../../../core/config/constants/navigation.constants';
 import { NotificationsService } from '../../../../../core/services/notifications.service';
 import { take } from 'rxjs';
+import { WishlistService } from '../../../../wishlist/services/wishlist.service';
 
 @Component({
     selector: 'app-product-detail-page',
@@ -25,10 +27,12 @@ import { take } from 'rxjs';
 })
 export class ProductDetailPageComponent implements OnInit {
     private readonly productService = inject(ProductService);
+    private readonly recentlyViewedProductsService = inject(RecentlyViewedProductsService);
     private readonly cartService = inject(CartService);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly notificationsService = inject(NotificationsService);
+    readonly wishlist = inject(WishlistService);
 
     readonly product = this.productService.selectedProduct;
     readonly loading = this.productService.loading;
@@ -42,9 +46,10 @@ export class ProductDetailPageComponent implements OnInit {
     });
 
     ngOnInit(): void {
+        this.wishlist.load();
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
-            this.productService.loadById(id).pipe(take(1)).subscribe();
+            this.loadProduct(id);
         } else {
             this.router.navigate([
                 `/${AppNavRoutes.Products.root}/${AppNavRoutes.Products.features.overview}`
@@ -78,6 +83,12 @@ export class ProductDetailPageComponent implements OnInit {
                 message: `${prod.name} was added to your cart.`
             });
         }
+
+    }
+
+    onSaveToWishlist(): void {
+        const product = this.product();
+        if (product) this.wishlist.save(product);
     }
 
     goBack(): void {
@@ -89,7 +100,18 @@ export class ProductDetailPageComponent implements OnInit {
     retry(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
-            this.productService.loadById(id).pipe(take(1)).subscribe();
+            this.loadProduct(id);
         }
+    }
+
+    private loadProduct(id: string): void {
+        this.productService
+            .loadById(id)
+            .pipe(take(1))
+            .subscribe(() => {
+                if (this.product()?.id === id) {
+                    this.recentlyViewedProductsService.recordView(id);
+                }
+            });
     }
 }

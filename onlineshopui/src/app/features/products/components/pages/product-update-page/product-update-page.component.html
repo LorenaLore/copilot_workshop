@@ -7,7 +7,7 @@
         </div>
 
         <!-- Loading State -->
-        @if (loading() && !product()) {
+        @if ((loading() && !product()) || suppliersLoading()) {
             <app-spinner [overlay]="true"></app-spinner>
         }
 
@@ -26,12 +26,29 @@
             </div>
         }
 
+        @if (suppliersError() && !suppliersLoading()) {
+            <div
+                class="bg-surface-2 border border-border rounded-lg p-6 text-center mb-4"
+                role="alert"
+            >
+                <p class="text-destructive mb-4">{{ suppliersError() }}</p>
+                <button
+                    type="button"
+                    (click)="retry()"
+                    class="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+                >
+                    Try Again
+                </button>
+            </div>
+        }
+
         <!-- Form -->
-        @if (product() && categories().length > 0) {
+        @if (product() && categories().length > 0 && !suppliersLoading() && !suppliersError()) {
             <app-card>
                 <app-product-form
                     [form]="form"
                     [categories]="categories()"
+                    [suppliers]="suppliers()"
                     [isSubmitting]="isSubmitting()"
                     [submitLabel]="'Update Product'"
                     (formSubmit)="onSubmit()"

@@ -7,8 +7,10 @@ import { ProductDetailPageComponent } from './product-detail-page.component';
 import { ProductService } from '../../../services/product.service';
 import { CartService } from '../../../../cart/services/cart.service';
 import { NotificationsService } from '../../../../../core/services/notifications.service';
+import { RecentlyViewedProductsService } from '../../../services/recently-viewed-products.service';
 import { MOCK_PRODUCTS } from '../../../../../core/mocks/data/products.mock';
 import { AppNavRoutes } from '../../../../../core/config/constants/navigation.constants';
+import { WishlistService } from '../../../../wishlist/services/wishlist.service';
 
 describe('ProductDetailPageComponent', () => {
     let component: ProductDetailPageComponent;
@@ -32,6 +34,17 @@ describe('ProductDetailPageComponent', () => {
     };
     let notificationsServiceMock: {
         notifySuccess: ReturnType<typeof vi.fn>;
+    };
+    let recentlyViewedProductsServiceMock: {
+        recordView: ReturnType<typeof vi.fn>;
+    };
+    let wishlistMock: {
+        load: ReturnType<typeof vi.fn>;
+        save: ReturnType<typeof vi.fn>;
+        isSaved: ReturnType<typeof vi.fn>;
+        isPending: ReturnType<typeof vi.fn>;
+        error: ReturnType<typeof signal>;
+        mutationError: ReturnType<typeof signal>;
     };
 
     beforeEach(() => {
@@ -60,6 +73,18 @@ describe('ProductDetailPageComponent', () => {
             notifySuccess: vi.fn()
         };
 
+        recentlyViewedProductsServiceMock = {
+            recordView: vi.fn()
+        };
+        wishlistMock = {
+            load: vi.fn(),
+            save: vi.fn(),
+            isSaved: vi.fn().mockReturnValue(false),
+            isPending: vi.fn().mockReturnValue(false),
+            error: signal(null),
+            mutationError: signal(null)
+        };
+
         TestBed.configureTestingModule({
             imports: [ProductDetailPageComponent],
             providers: [
@@ -67,12 +92,44 @@ describe('ProductDetailPageComponent', () => {
                 { provide: CartService, useValue: cartServiceMock },
                 { provide: Router, useValue: routerMock },
                 { provide: ActivatedRoute, useValue: activatedRouteMock },
-                { provide: NotificationsService, useValue: notificationsServiceMock }
+                { provide: NotificationsService, useValue: notificationsServiceMock },
+                { provide: WishlistService, useValue: wishlistMock },
+                {
+                    provide: RecentlyViewedProductsService,
+                    useValue: recentlyViewedProductsServiceMock
+                }
             ]
         });
 
         fixture = TestBed.createComponent(ProductDetailPageComponent);
         component = fixture.componentInstance;
+    });
+
+    it('loads wishlist state and saves the displayed product', () => {
+        fixture.detectChanges();
+        expect(wishlistMock.load).toHaveBeenCalled();
+        const button = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)
+            .find(item => item.textContent?.includes('Save to wishlist'))!;
+        button.click();
+        expect(wishlistMock.save).toHaveBeenCalledWith(MOCK_PRODUCTS[0]);
+    });
+
+    it('displays saved and pending states', () => {
+        const saved = signal(true);
+        const pendingState = signal(false);
+        wishlistMock.isSaved.mockImplementation(() => saved());
+        wishlistMock.isPending.mockImplementation(() => pendingState());
+        fixture.detectChanges();
+        const button = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)
+            .find(item => item.textContent?.includes('Saved to wishlist'))!;
+        expect(button.disabled).toBe(true);
+        saved.set(false);
+        pendingState.set(true);
+        fixture.detectChanges();
+        const pending = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)
+            .find(item => item.textContent?.includes('Saving'))!;
+        expect(pending).toBeTruthy();
+        expect(pending.disabled).toBe(true);
     });
 
     describe('Initialization', () => {
@@ -96,6 +153,18 @@ describe('ProductDetailPageComponent', () => {
 
             // Verify
             expect(productServiceMock.loadById).toHaveBeenCalledWith('prod-1');
+            expect(recentlyViewedProductsServiceMock.recordView).toHaveBeenCalledWith('prod-1');
+        });
+
+        it('should not record a product when it was not loaded', () => {
+            // Prepare
+            productServiceMock.selectedProduct.set(null);
+
+            // Action
+            component.ngOnInit();
+
+            // Verify
+            expect(recentlyViewedProductsServiceMock.recordView).not.toHaveBeenCalled();
         });
 
         it('should navigate to products overview when no id provided', () => {

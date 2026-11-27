@@ -5,8 +5,10 @@ import { vi } from 'vitest';
 import { signal } from '@angular/core';
 import { ProductUpdatePageComponent } from './product-update-page.component';
 import { ProductService } from '../../../services/product.service';
+import { SupplierService } from '../../../services/supplier.service';
 import { NotificationsService } from '../../../../../core/services/notifications.service';
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from '../../../../../core/mocks/data/products.mock';
+import { MOCK_SUPPLIERS } from '../../../../../core/mocks/data/suppliers.mock';
 import { AppNavRoutes } from '../../../../../core/config/constants/navigation.constants';
 import { ValidationMessages } from '../../../../../core/types/providers/validation-messages';
 import { DefaultValidationMessages } from '../../../../../core/config/constants/validation.constants';
@@ -26,6 +28,12 @@ describe('ProductUpdatePageComponent', () => {
     let routerMock: {
         navigate: ReturnType<typeof vi.fn>;
     };
+    let supplierServiceMock: {
+        suppliers: ReturnType<typeof signal>;
+        loading: ReturnType<typeof signal>;
+        error: ReturnType<typeof signal>;
+        loadAll: ReturnType<typeof vi.fn>;
+    };
     let activatedRouteMock: {
         snapshot: {
             paramMap: ReturnType<typeof convertToParamMap>;
@@ -39,7 +47,7 @@ describe('ProductUpdatePageComponent', () => {
 
     beforeEach(() => {
         // Mock console.error to suppress expected error logs during error handling tests
-        consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn());
         productServiceMock = {
             selectedProduct: signal(MOCK_PRODUCTS[0]),
             categories: signal([...MOCK_CATEGORIES]),
@@ -48,6 +56,13 @@ describe('ProductUpdatePageComponent', () => {
             loadById: vi.fn().mockReturnValue(of(MOCK_PRODUCTS[0])),
             loadCategories: vi.fn().mockReturnValue(of(MOCK_CATEGORIES)),
             update: vi.fn().mockReturnValue(of(MOCK_PRODUCTS[0]))
+        };
+
+        supplierServiceMock = {
+            suppliers: signal([...MOCK_SUPPLIERS]),
+            loading: signal(false),
+            error: signal<string | null>(null),
+            loadAll: vi.fn().mockReturnValue(of(undefined))
         };
 
         routerMock = {
@@ -69,6 +84,7 @@ describe('ProductUpdatePageComponent', () => {
             imports: [ProductUpdatePageComponent],
             providers: [
                 { provide: ProductService, useValue: productServiceMock },
+                { provide: SupplierService, useValue: supplierServiceMock },
                 { provide: Router, useValue: routerMock },
                 { provide: ActivatedRoute, useValue: activatedRouteMock },
                 { provide: NotificationsService, useValue: notificationsServiceMock },
@@ -106,6 +122,7 @@ describe('ProductUpdatePageComponent', () => {
             // Verify
             expect(productServiceMock.loadById).toHaveBeenCalledWith('prod-1');
             expect(productServiceMock.loadCategories).toHaveBeenCalled();
+            expect(supplierServiceMock.loadAll).toHaveBeenCalled();
         });
 
         it('should navigate to products overview when no id provided', () => {
@@ -135,8 +152,46 @@ describe('ProductUpdatePageComponent', () => {
                 price: MOCK_PRODUCTS[0].price,
                 weight: MOCK_PRODUCTS[0].weight,
                 imageUrl: MOCK_PRODUCTS[0].imageUrl,
-                categoryId: MOCK_PRODUCTS[0].category.id
+                categoryId: MOCK_PRODUCTS[0].category.id,
+                supplierId: MOCK_PRODUCTS[0].supplier?.id
             });
+        });
+
+        it('should render supplier options and select the assigned supplier', () => {
+            fixture.detectChanges();
+
+            const select = fixture.nativeElement.querySelector('#supplierId') as HTMLSelectElement;
+            expect(select.value).toBe(MOCK_SUPPLIERS[0].id);
+            expect(Array.from(select.options).map(option => option.value)).toEqual([
+                '',
+                ...MOCK_SUPPLIERS.map(supplier => supplier.id)
+            ]);
+        });
+
+        it('should require a supplier for a product without one', () => {
+            productServiceMock.selectedProduct.set({ ...MOCK_PRODUCTS[0], supplier: null });
+            fixture.detectChanges();
+
+            expect(component.form.controls.supplierId.value).toBe('');
+            expect(component.form.controls.supplierId.invalid).toBe(true);
+            component.onSubmit();
+            expect(productServiceMock.update).not.toHaveBeenCalled();
+        });
+
+        it('should show supplier loading errors and retry', () => {
+            supplierServiceMock.error.set('Failed to load suppliers');
+            fixture.detectChanges();
+            expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(
+                'Failed to load suppliers'
+            );
+            expect(fixture.nativeElement.querySelector('app-product-form')).toBeNull();
+            supplierServiceMock.loadAll.mockClear();
+
+            (
+                fixture.nativeElement.querySelector('[role="alert"] button') as HTMLButtonElement
+            ).click();
+
+            expect(supplierServiceMock.loadAll).toHaveBeenCalledOnce();
         });
     });
 
@@ -162,7 +217,8 @@ describe('ProductUpdatePageComponent', () => {
             // Prepare
             component.form.patchValue({
                 name: 'Updated Product',
-                price: 199.99
+                price: 199.99,
+                supplierId: MOCK_SUPPLIERS[1].id
             });
 
             // Action
@@ -175,7 +231,8 @@ describe('ProductUpdatePageComponent', () => {
                 price: 199.99,
                 weight: MOCK_PRODUCTS[0].weight,
                 imageUrl: MOCK_PRODUCTS[0].imageUrl,
-                categoryId: MOCK_PRODUCTS[0].category.id
+                categoryId: MOCK_PRODUCTS[0].category.id,
+                supplierId: MOCK_SUPPLIERS[1].id
             });
             expect(notificationsServiceMock.notifySuccess).toHaveBeenCalledWith({
                 title: 'Product updated',
@@ -184,6 +241,23 @@ describe('ProductUpdatePageComponent', () => {
             expect(routerMock.navigate).toHaveBeenCalledWith([
                 `/${AppNavRoutes.Products.root}/${AppNavRoutes.Products.features.overview}`
             ]);
+        });
+
+        it('should preserve the assigned supplier when it is not changed', () => {
+            component.onSubmit();
+
+            expect(productServiceMock.update).toHaveBeenCalledWith(
+                'prod-1',
+                expect.objectContaining({ supplierId: MOCK_SUPPLIERS[0].id })
+            );
+        });
+
+        it('should not submit while suppliers failed to load', () => {
+            supplierServiceMock.error.set('Failed to load suppliers');
+
+            component.onSubmit();
+
+            expect(productServiceMock.update).not.toHaveBeenCalled();
         });
 
         it('should not submit when no product id', () => {
@@ -251,6 +325,7 @@ describe('ProductUpdatePageComponent', () => {
             component.ngOnInit();
             productServiceMock.loadById.mockClear();
             productServiceMock.loadCategories.mockClear();
+            supplierServiceMock.loadAll.mockClear();
 
             // Action
             component.retry();
@@ -258,6 +333,7 @@ describe('ProductUpdatePageComponent', () => {
             // Verify
             expect(productServiceMock.loadById).toHaveBeenCalledWith('prod-1');
             expect(productServiceMock.loadCategories).toHaveBeenCalled();
+            expect(supplierServiceMock.loadAll).toHaveBeenCalled();
         });
 
         it('should not reload when no product id', () => {
@@ -266,6 +342,7 @@ describe('ProductUpdatePageComponent', () => {
             component.ngOnInit();
             productServiceMock.loadById.mockClear();
             productServiceMock.loadCategories.mockClear();
+            supplierServiceMock.loadAll.mockClear();
 
             // Action
             component.retry();
@@ -273,6 +350,7 @@ describe('ProductUpdatePageComponent', () => {
             // Verify
             expect(productServiceMock.loadById).not.toHaveBeenCalled();
             expect(productServiceMock.loadCategories).not.toHaveBeenCalled();
+            expect(supplierServiceMock.loadAll).not.toHaveBeenCalled();
         });
     });
 });

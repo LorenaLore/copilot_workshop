@@ -4,27 +4,27 @@ VALUES ('ca7e0001-0000-0000-0000-000000000001', 'Electronics', 'Electronic devic
        ('ca7e0003-0000-0000-0000-000000000003', 'Home & Garden', 'Home improvement and garden supplies'),
        ('ca7e0004-0000-0000-0000-000000000004', 'Sports', 'Sports equipment and accessories');
 
-INSERT INTO products (id, name, description, price, weight, category_id, image_url, supplier_id)
+INSERT INTO products (id, name, description, price, weight, category_id, image_url)
 VALUES ('fade0001-0000-0000-0000-000000000001', 'Wireless Headphones', 'High-quality wireless headphones with noise cancellation', 149.99,
-        0.25, 'ca7e0001-0000-0000-0000-000000000001', 'https://picsum.photos/seed/headphones/400/300', '5upp0001-0000-0000-0000-000000000001'),
+        0.25, 'ca7e0001-0000-0000-0000-000000000001', 'https://picsum.photos/seed/headphones/400/300'),
        ('fade0002-0000-0000-0000-000000000002', 'Smart Watch', 'Feature-rich smartwatch with health tracking', 299.99,
-        0.05, 'ca7e0001-0000-0000-0000-000000000001', 'https://picsum.photos/seed/smartwatch/400/300', '5upp0001-0000-0000-0000-000000000001'),
+        0.05, 'ca7e0001-0000-0000-0000-000000000001', 'https://picsum.photos/seed/smartwatch/400/300'),
        ('fade0003-0000-0000-0000-000000000003', 'Bluetooth Speaker', 'Portable bluetooth speaker with deep bass', 79.99,
-        0.5, 'ca7e0001-0000-0000-0000-000000000001', 'https://picsum.photos/seed/speaker/400/300', '5upp0001-0000-0000-0000-000000000001'),
+        0.5, 'ca7e0001-0000-0000-0000-000000000001', 'https://picsum.photos/seed/speaker/400/300'),
        ('fade0004-0000-0000-0000-000000000004', 'Cotton T-Shirt', 'Comfortable 100% cotton t-shirt', 24.99,
-        0.2, 'ca7e0002-0000-0000-0000-000000000002', 'https://picsum.photos/seed/tshirt/400/300', '5upp0002-0000-0000-0000-000000000002'),
+        0.2, 'ca7e0002-0000-0000-0000-000000000002', 'https://picsum.photos/seed/tshirt/400/300'),
        ('fade0005-0000-0000-0000-000000000005', 'Denim Jeans', 'Classic fit denim jeans', 59.99,
-        0.6, 'ca7e0002-0000-0000-0000-000000000002', 'https://picsum.photos/seed/jeans/400/300', '5upp0002-0000-0000-0000-000000000002'),
+        0.6, 'ca7e0002-0000-0000-0000-000000000002', 'https://picsum.photos/seed/jeans/400/300'),
        ('fade0006-0000-0000-0000-000000000006', 'Garden Hose', 'Durable 50ft garden hose with spray nozzle', 34.99,
-        2.5, 'ca7e0003-0000-0000-0000-000000000003', 'https://picsum.photos/seed/hose/400/300', '5upp0003-0000-0000-0000-000000000003'),
+        2.5, 'ca7e0003-0000-0000-0000-000000000003', 'https://picsum.photos/seed/hose/400/300'),
        ('fade0007-0000-0000-0000-000000000007', 'LED Desk Lamp', 'Adjustable LED desk lamp with multiple brightness levels', 44.99,
-        0.8, 'ca7e0003-0000-0000-0000-000000000003', 'https://picsum.photos/seed/lamp/400/300', '5upp0003-0000-0000-0000-000000000003'),
+        0.8, 'ca7e0003-0000-0000-0000-000000000003', 'https://picsum.photos/seed/lamp/400/300'),
        ('fade0008-0000-0000-0000-000000000008', 'Yoga Mat', 'Non-slip yoga mat with carrying strap', 29.99,
-        1.2, 'ca7e0004-0000-0000-0000-000000000004', 'https://picsum.photos/seed/yogamat/400/300', '5upp0004-0000-0000-0000-000000000004'),
+        1.2, 'ca7e0004-0000-0000-0000-000000000004', 'https://picsum.photos/seed/yogamat/400/300'),
        ('fade0009-0000-0000-0000-000000000009', 'Running Shoes', 'Lightweight running shoes with cushioned sole', 89.99,
-        0.7, 'ca7e0004-0000-0000-0000-000000000004', 'https://picsum.photos/seed/shoes/400/300', '5upp0004-0000-0000-0000-000000000004'),
+        0.7, 'ca7e0004-0000-0000-0000-000000000004', 'https://picsum.photos/seed/shoes/400/300'),
        ('fade000a-0000-0000-0000-00000000000a', 'Fitness Tracker', 'Water-resistant fitness tracker with heart rate monitor', 69.99,
-        0.03, 'ca7e0004-0000-0000-0000-000000000004', 'https://picsum.photos/seed/tracker/400/300', '5upp0004-0000-0000-0000-000000000004');
+        0.03, 'ca7e0004-0000-0000-0000-000000000004', 'https://picsum.photos/seed/tracker/400/300');
 
 INSERT INTO locations (id, name, country, city, county, street_address)
 VALUES ('10ca0001-0000-0000-0000-000000000001', 'Warehouse Cluj', 'Romania', 'Cluj-Napoca', 'Cluj',
